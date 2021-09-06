@@ -1,5 +1,6 @@
 use std::fmt::{Display, Debug, Formatter, Result as FmtResult};
 use std::cmp::Ordering;
+use std::ops::Add;
 
 // Another option would be the Binary GCD algorithm (https://en.wikipedia.org/wiki/Binary_GCD_algorithm)
 fn gcd(mut a: u32, mut b: u32) -> u32 {
@@ -33,19 +34,6 @@ impl Fraction {
         self.numerator /= gcd;
         self.denominator /= gcd;
     }
-
-    pub fn add(&self, other: &Self) -> Self {
-        let mut result = if self.denominator == other.denominator {
-            Fraction::new(self.numerator + other.numerator, self.denominator)
-        } else {
-            Fraction::new(
-                self.numerator * other.denominator + other.numerator * self.denominator,
-                self.denominator * other.denominator,
-            )
-        };
-        result.simplify();
-        result
-    }
 }
 
 impl Display for Fraction {
@@ -58,15 +46,32 @@ impl Display for Fraction {
     }
 }
 
+impl Add for Fraction {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self::Output {
+        if self.denominator == other.denominator {
+            Fraction::new(self.numerator + other.numerator, self.denominator)
+        } else {
+            Fraction::new(
+                self.numerator * other.denominator + other.numerator * self.denominator,
+                self.denominator * other.denominator,
+            )
+        }
+    }
+}
+
 fn main() {
     let f1 = Fraction::new(1, 4);
     let f2 = Fraction::new(2, 4);
-    let f3 = f1.add(&f2);
+    let mut f3 = f1 + f2;
+    f3.simplify();
     println!("{} + {} = {}", f1, f2, f3);
 
     let f4 = Fraction::new(5, 4);
     let f5 = Fraction::new(3, 4);
     let f6 = Fraction::new(8, 4);
-    let f7 = f4.add(&f5).add(&f6);
+    let mut f7 = f4 + f5 + f6;
+    f7.simplify();
     println!("{} + {} + {} = {}", f4, f5, f6, f7);
 }
