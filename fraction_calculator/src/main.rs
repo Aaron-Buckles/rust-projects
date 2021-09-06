@@ -34,35 +34,39 @@ impl Fraction {
         self.denominator /= gcd;
     }
 
-    pub fn add(mut a: Self, mut b: Self) -> Self {
-        Self::common_denominator(&mut a, &mut b);
-        let mut result = Self::new(a.numerator + b.numerator, a.denominator);
+    pub fn add(&self, other: &Self) -> Self {
+        let mut result = if self.denominator == other.denominator {
+            Fraction::new(self.numerator + other.numerator, self.denominator)
+        } else {
+            Fraction::new(
+                self.numerator * other.denominator + other.numerator * self.denominator,
+                self.denominator * other.denominator,
+            )
+        };
         result.simplify();
         result
-    }
-
-    fn common_denominator(a: &mut Self, b: &mut Self) {
-        if a.denominator != b.denominator {
-            a.numerator *= b.denominator;
-            b.numerator *= a.denominator;
-
-            let common_denominator = a.denominator * b.denominator;
-            a.denominator = common_denominator;
-            b.denominator = common_denominator;
-        }
     }
 }
 
 impl Display for Fraction {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "{}/{}", self.numerator, self.denominator)
+        if self.denominator == 1 {
+            write!(f, "{}", self.numerator)
+        } else {
+            write!(f, "{}/{}", self.numerator, self.denominator)
+        }
     }
 }
 
 fn main() {
-    let f1 = Fraction::new(1, 3);
-    let f2 = Fraction::new(1, 6);
-    let result = Fraction::add(f1, f2);
-    // dbg!(result);
-    println!("{} + {} = {}", f1, f2, result);
+    let f1 = Fraction::new(1, 4);
+    let f2 = Fraction::new(2, 4);
+    let f3 = f1.add(&f2);
+    println!("{} + {} = {}", f1, f2, f3);
+
+    let f4 = Fraction::new(5, 4);
+    let f5 = Fraction::new(3, 4);
+    let f6 = Fraction::new(8, 4);
+    let f7 = f4.add(&f5).add(&f6);
+    println!("{} + {} + {} = {}", f4, f5, f6, f7);
 }
