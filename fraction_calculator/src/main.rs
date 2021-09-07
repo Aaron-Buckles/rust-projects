@@ -1,6 +1,6 @@
 use std::fmt::{Display, Debug, Formatter, Result as FmtResult};
 use std::cmp::Ordering;
-use std::ops::{Add, Sub, Neg};
+use std::ops::{Add, Sub, Neg, Mul};
 
 // Another option would be the Binary GCD algorithm (https://en.wikipedia.org/wiki/Binary_GCD_algorithm)
 fn gcd(mut a: i32, mut b: i32) -> i32 {
@@ -91,6 +91,17 @@ impl Neg for Fraction {
     }
 }
 
+impl Mul for Fraction {
+    type Output = Self;
+
+    fn mul(self, other: Self) -> Self::Output {
+        Fraction::new(
+            self.numerator * other.numerator,
+            self.denominator * other.denominator,
+        )
+    }
+}
+
 fn main() {
     let f1 = Fraction::new(1, 4);
     let f2 = Fraction::new(2, 4);
@@ -115,4 +126,10 @@ fn main() {
     let mut f12 = f11;
     f12.simplify();
     println!("{} = {}", f11, f12);
+
+    let f13 = Fraction::new(2, 3);
+    let f14 = Fraction::new(1,3);
+    let mut f15 = f13 * f14;
+    f15.simplify();
+    println!("{} * {} = {}", f13, f14, f15);
 }
