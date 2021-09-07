@@ -1,6 +1,10 @@
 use std::fmt::{Display, Debug, Formatter, Result as FmtResult};
+use std::str::FromStr;
 use std::cmp::Ordering;
 use std::ops::{Add, Sub, Neg, Mul, Div};
+// use text_io::scan;
+
+struct ParseFractionError;
 
 // Another option would be the Binary GCD algorithm (https://en.wikipedia.org/wiki/Binary_GCD_algorithm)
 fn gcd(mut a: i32, mut b: i32) -> i32 {
@@ -61,6 +65,26 @@ impl Display for Fraction {
         } else {
             write!(f, "{}/{}", self.numerator, self.denominator)
         }
+    }
+}
+
+impl FromStr for Fraction {
+    type Err = ParseFractionError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if let Some(i) = s.find('/') {
+            let numerator = match s[..i].parse() {
+                Ok(n) => n,
+                Err(_) => return Err(ParseFractionError),
+            };
+            let denominator = match s[i+1..].parse() {
+                Ok(d) => d,
+                Err(_) => return Err(ParseFractionError),
+            };
+
+            return Ok(Fraction::new(numerator, denominator))
+        }
+        Err(ParseFractionError)
     }
 }
 
@@ -150,4 +174,12 @@ fn main() {
     let mut f18 = f16 / f17;
     f18.simplify();
     println!("{} / {} = {}", f16, f17, f18);
+
+    if let Ok(mut f19) = Fraction::from_str("8/4") {
+        dbg!(f19);
+        f19.simplify();
+        println!("f19 simplified is {}", f19);
+    } else {
+        println!("Could not parse f19");
+    }
 }
