@@ -175,11 +175,11 @@ fn main() {
     f18.simplify();
     println!("{} / {} = {}", f16, f17, f18);
 
-    if let Ok(mut f19) = Fraction::from_str("8/4") {
-        dbg!(f19);
+    let f19_str = "8/4";
+    if let Ok(mut f19) = Fraction::from_str(f19_str) {
         f19.simplify();
-        println!("f19 simplified is {}", f19);
+        println!("\"{}\" simplifies to {}", f19_str, f19);
     } else {
-        println!("Could not parse f19");
+        println!("Could not parse {}", f19_str);
     }
 }
