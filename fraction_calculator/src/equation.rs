@@ -5,6 +5,7 @@ use std::fmt::{Result as FmtResult, Formatter, Display};
 // https://en.wikipedia.org/wiki/Shunting-yard_algorithm
 // https://en.wikipedia.org/wiki/Reverse_Polish_notation
 
+// TODO: Make error more descriptive
 #[derive(Debug)]
 struct ParseEquationError;
 
@@ -65,13 +66,13 @@ impl Equation {
     pub fn eval(input: &str) {
         let tokens = Self::tokenize(input);
         let rpn = Self::shunting_yard_algorithm(&tokens).unwrap();
-
-        // TODO: Remove (prints out reverse polish notation)
-        for token in rpn {
-            print!("{} ", token);
-        }
-
-
+        match Self::evaluate_rpn(&rpn) {
+            Ok(mut num) => {
+                num.simplify();
+                println!("{} = {}", input, num)
+            },
+            Err(_) => panic!("ParseEquationError") // TODO: More graceful error
+        };
     }
 
     fn tokenize(input: &str) -> Vec<Token> {
@@ -92,6 +93,7 @@ impl Equation {
         tokens
     }
 
+    // TODO: Use Token references
     fn shunting_yard_algorithm(tokens: &Vec<Token>) -> Result<Vec<Token>, ParseEquationError> {
         let mut output_queue: Vec<Token> = Vec::new();
         let mut operator_stack: Vec<Token> = Vec::new();
@@ -126,6 +128,39 @@ impl Equation {
         }
 
         Ok(output_queue)
+    }
+
+    fn evaluate_rpn(postfix: &Vec<Token>) -> Result<Fraction, ParseEquationError>{
+        let mut number_stack: Vec<Token> = Vec::new();
+
+        for token in postfix {
+            match token {
+                Token::Number(_) => number_stack.push(*token),
+                Token::Operator(operator) => {
+                    if let Some(Token::Number(num2)) = number_stack.pop() {
+                        if let Some(Token::Number(num1)) = number_stack.pop() {
+                            let result: Fraction = match operator {
+                                OperatorType::Add => num1 + num2,
+                                OperatorType::Sub => num1 - num2,
+                                OperatorType::Mul => num1 * num2,
+                                OperatorType::Div => num1 / num2,
+                            };
+                            number_stack.push(Token::Number(result));
+                        } else {
+                            return Err(ParseEquationError);
+                        }
+                    } else {
+                        return Err(ParseEquationError);
+                    }
+                }
+            }
+        }
+
+        if let Some(Token::Number(num)) = number_stack.pop() {
+            Ok(num)
+        } else {
+            Err(ParseEquationError)
+        }
     }
 }
 
