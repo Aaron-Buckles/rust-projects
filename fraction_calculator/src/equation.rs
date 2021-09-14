@@ -63,6 +63,7 @@ impl Display for Token {
 pub struct Equation;
 
 impl Equation {
+    // TODO: Return a value from this function (will make unit testing easier)
     pub fn eval(input: &str) {
         let tokens = Self::tokenize(input);
         let rpn = Self::shunting_yard_algorithm(&tokens).unwrap();
@@ -195,4 +196,6 @@ mod tests {
         let expected = "2/3 5/8 -8/7 * +";
         assert_eq!(result, expected);
     }
+
+    // TODO: Write more unit tests
 }
