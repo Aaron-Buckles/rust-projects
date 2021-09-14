@@ -27,14 +27,12 @@ fn gcd(mut a: i32, mut b: i32) -> i32 {
     a
 }
 
-// TODO: Implement operators between Fraction and i32
 #[derive(Debug, Clone, Copy)]
 pub struct Fraction {
     numerator: i32,
     denominator: i32,
 }
 
-// TODO: Support negative fractions (need to use i32)
 impl Fraction {
     pub fn new(numerator: i32, denominator: i32) -> Self {
         Self {
@@ -107,7 +105,18 @@ impl FromStr for Fraction {
 
             return Ok(Fraction::new(numerator, denominator))
         }
+
+        if let Ok(num) = s.parse::<i32>() {
+            return Ok(Fraction::from(num))
+        }
+
         Err(ParseFractionError)
+    }
+}
+
+impl From<i32> for Fraction {
+    fn from(num: i32) -> Self {
+        Fraction::new(num, 1)
     }
 }
 
@@ -175,8 +184,7 @@ impl PartialEq for Fraction {
 
 impl PartialEq<i32> for Fraction {
     fn eq(&self, other: &i32) -> bool {
-        let f1 = self.clone_simplified();
-        f1.denominator == 1 && f1.numerator == *other
+        *self == Fraction::from(*other)
     }
 }
 

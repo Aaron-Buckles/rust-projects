@@ -1,8 +1,10 @@
 use fraction::Fraction;
-use std::str::FromStr;
+use equation::Equation;
 
 mod fraction;
+mod equation;
 
 fn main() {
-    println!("Hello world!");
+    // Equation::eval("3 + 4");
+    Equation::eval("3 + 4/5 * 6/7");
 }
