@@ -7,7 +7,7 @@ use std::fmt::{Result as FmtResult, Formatter, Display};
 
 // TODO: Make error more descriptive
 #[derive(Debug)]
-struct ParseEquationError;
+pub struct ParseEquationError;
 
 #[derive(Debug, Copy, Clone)]
 enum OperatorType {
@@ -63,22 +63,17 @@ impl Display for Token {
 pub struct Equation;
 
 impl Equation {
-    // TODO: Return a value from this function (will make unit testing easier)
-    pub fn eval(input: &str) {
+    pub fn eval(input: &str) -> Result<Fraction, ParseEquationError> {
         let tokens = Self::tokenize(input);
         let rpn = Self::shunting_yard_algorithm(&tokens).unwrap();
         match Self::evaluate_rpn(&rpn) {
-            Ok(mut num) => {
-                num.simplify();
-                println!("{} = {}", input, num)
-            },
-            Err(_) => panic!("ParseEquationError") // TODO: More graceful error
-        };
+            Ok(num) => Ok(num),
+            Err(_) => Err(ParseEquationError),
+        }
     }
 
     fn tokenize(input: &str) -> Vec<Token> {
         let mut tokens: Vec<Token> = Vec::new();
-
         for token in input.split(' ') {
             match token {
                 "+" => tokens.push(Token::Operator(OperatorType::Add)),
@@ -197,5 +192,17 @@ mod tests {
         assert_eq!(result, expected);
     }
 
-    // TODO: Write more unit tests
+    #[test]
+    fn eval1() {
+        let result = Equation::eval("3 + 4").unwrap();
+        let expected = 7;
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn eval2() {
+        let result = Equation::eval("1/2 + 2 * -1/8").unwrap();
+        let expected = Fraction::new(1, 4);
+        assert_eq!(result, expected)
+    }
 }
