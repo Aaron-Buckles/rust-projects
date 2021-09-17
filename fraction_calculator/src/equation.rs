@@ -7,7 +7,27 @@ use std::fmt::{Result as FmtResult, Formatter, Display};
 
 // TODO: Make error more descriptive
 #[derive(Debug)]
-pub struct ParseEquationError;
+pub enum EquationError {
+    UnableToTokenize,
+    UnableToConvertToPostfix,
+    UnableToEvaluate,
+}
+
+impl EquationError {
+    fn message(&self) -> &str {
+        match self {
+            Self::UnableToTokenize => "Unable to tokenize the equation",
+            Self::UnableToConvertToPostfix => "Unable to convert to postfix notation",
+            Self::UnableToEvaluate => "Unable to evaluate the postfix equation",
+        }
+    }
+}
+
+impl Display for EquationError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "Error: {}", self.message())
+    }
+}
 
 #[derive(Debug, Copy, Clone)]
 enum OperatorType {
@@ -63,16 +83,14 @@ impl Display for Token {
 pub struct Equation;
 
 impl Equation {
-    pub fn eval(input: &str) -> Result<Fraction, ParseEquationError> {
-        let tokens = Self::tokenize(input);
-        let rpn = Self::shunting_yard_algorithm(&tokens).unwrap();
-        match Self::evaluate_rpn(&rpn) {
-            Ok(num) => Ok(num),
-            Err(_) => Err(ParseEquationError),
-        }
+    pub fn eval(input: &str) -> Result<Fraction, EquationError> {
+        let tokens = Self::tokenize(input)?;
+        let rpn = Self::shunting_yard_algorithm(&tokens)?;
+        let result = Self::evaluate_rpn(&rpn)?;
+        Ok(result)
     }
 
-    fn tokenize(input: &str) -> Vec<Token> {
+    fn tokenize(input: &str) -> Result<Vec<Token>, EquationError> {
         let mut tokens: Vec<Token> = Vec::new();
         for token in input.split(' ') {
             match token {
@@ -81,16 +99,19 @@ impl Equation {
                 "*" => tokens.push(Token::Operator(OperatorType::Mul)),
                 "/" => tokens.push(Token::Operator(OperatorType::Div)),
                 _ => {
-                    let fraction = Fraction::from_str(token).unwrap(); // TODO: Error handling
-                    tokens.push(Token::Number(fraction));
+                    if let Ok(fraction) = Fraction::from_str(token) {
+                        tokens.push(Token::Number(fraction));
+                    } else {
+                        return Err(EquationError::UnableToTokenize);
+                    }
                 }
             };
         }
-        tokens
+        Ok(tokens)
     }
 
     // TODO: Use Token references
-    fn shunting_yard_algorithm(tokens: &Vec<Token>) -> Result<Vec<Token>, ParseEquationError> {
+    fn shunting_yard_algorithm(tokens: &Vec<Token>) -> Result<Vec<Token>, EquationError> {
         let mut output_queue: Vec<Token> = Vec::new();
         let mut operator_stack: Vec<Token> = Vec::new();
 
@@ -108,7 +129,7 @@ impl Equation {
                             // on the top of the stack to the output_queue
                             output_queue.push(top_token);
                         } else {
-                            return Err(ParseEquationError); // Something went wrong
+                            return Err(EquationError::UnableToConvertToPostfix);
                         }
                     }
                     operator_stack.push(*token); // Always push the current_operator onto the stack
@@ -126,7 +147,7 @@ impl Equation {
         Ok(output_queue)
     }
 
-    fn evaluate_rpn(postfix: &Vec<Token>) -> Result<Fraction, ParseEquationError>{
+    fn evaluate_rpn(postfix: &Vec<Token>) -> Result<Fraction, EquationError>{
         let mut number_stack: Vec<Token> = Vec::new();
 
         for token in postfix {
@@ -143,10 +164,10 @@ impl Equation {
                             };
                             number_stack.push(Token::Number(result));
                         } else {
-                            return Err(ParseEquationError);
+                            return Err(EquationError::UnableToEvaluate);
                         }
                     } else {
-                        return Err(ParseEquationError);
+                        return Err(EquationError::UnableToEvaluate);
                     }
                 }
             }
@@ -155,7 +176,7 @@ impl Equation {
         if let Some(Token::Number(num)) = number_stack.pop() {
             Ok(num)
         } else {
-            Err(ParseEquationError)
+            Err(EquationError::UnableToEvaluate)
         }
     }
 }

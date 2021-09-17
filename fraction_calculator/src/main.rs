@@ -16,10 +16,23 @@ fn main() {
 
     loop {
         print!("$ ");
-        io::stdout().flush().unwrap();
+
+        match io::stdout().flush() {
+            Ok(_) => {},
+            Err(_) => {
+                println!("There was an error flushing stdout, try again");
+                continue;
+            },
+        };
 
         let mut input = String::new();
-        io::stdin().read_line(&mut input).expect("Failed to read equation");
+        match io::stdin().read_line(&mut input) {
+            Ok(_) => {},
+            Err(_) => {
+                println!("There was an error trying to read the input, try again");
+                continue;
+            },
+        };
         let input = input.trim();
 
         if input == "exit" {
@@ -31,7 +44,7 @@ fn main() {
                 result.simplify();
                 println!(">>> {}", result)
             },
-            Err(_) => println!("Something went wrong, try again"),
+            Err(e) => println!("{}", e),
         };
     }
 }
