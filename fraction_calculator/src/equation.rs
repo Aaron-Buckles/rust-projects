@@ -110,7 +110,6 @@ impl Equation {
         Ok(tokens)
     }
 
-    // TODO: Use Token references
     fn shunting_yard_algorithm(tokens: &Vec<Token>) -> Result<Vec<Token>, EquationError> {
         let mut output_queue: Vec<Token> = Vec::new();
         let mut operator_stack: Vec<Token> = Vec::new();
